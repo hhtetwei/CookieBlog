@@ -20,18 +20,16 @@ app.use(
 
 //routes
 const authRoute = require("./routes/authRoute");
-const userRoute = require("./routes/userRoute");
+// const userRoute = require("./routes/userRoute");
+const postRoute = require("./routes/postRoute");
 
 app.use("/api/auth", authRoute);
-app.use("/api/user", userRoute);
+// app.use("/api/user", userRoute);
+app.use("/api/posts", postRoute);
 
 const port = process.env.PORT || 8000;
 const server = app.listen(port, () => {
   console.log(`App running on port ${port}...`);
-});
-
-app.use((error, req, res, next) => {
-  res.status(error.status || 500);
 });
 
 // handle errors
@@ -43,6 +41,7 @@ app.use((req, res, next) => {
 });
 app.use((error, req, res, next) => {
   res.status(error.status || 500);
+  // console.log(error);
   res.json({
     error: {
       message: error.message,

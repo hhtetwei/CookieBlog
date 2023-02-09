@@ -14,11 +14,12 @@ const {
   createActivationToken,
   createAccessToken,
 } = require("../utils/createTokens");
+const { createCustomId } = require("../services/createCustomId");
 const { cookieOptions } = require("../utils/cookieOptions");
 const { activateEmailHtml } = require("../helpers/activateEmailHtml");
 
 // services
-const { sendEmail } = require("../helpers/sendEmail");
+const sendEmail = require("../helpers/sendEmail");
 
 // from dot env
 const ACTIVATION_TOKEN_SECRET = process.env.ACTIVATION_TOKEN_SECRET;
@@ -27,7 +28,7 @@ const CLIENT_URL = process.env.CLIENT_URL;
 // register
 const register = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, DOB } = req.body;
 
     // unique validation
     const userEmail = await Users.findOne({ email });
@@ -36,6 +37,16 @@ const register = async (req, res, next) => {
       return res
         .status(400)
         .json({ status: 400, msg: "This email already exists!" });
+    }
+
+    const DateofBirth = new Date(DOB); //2002
+    const countDate = new Date("2008.1.1");
+    const isValid = DateofBirth <= countDate;
+    if (!isValid) {
+      return res.status(400).json({
+        status: 400,
+        msg: "You are not allowed to use our Blog! Come back after you finish Highschool:P",
+      });
     }
 
     // create user model
@@ -87,8 +98,8 @@ const activateEmail = async (req, res, next) => {
         });
       }
 
-      //   // create custom id
-      //   const id = await createCustomId(Users, "U");
+      // create custom id
+      const id = await createCustomId(Users, "U");
 
       // create user model & save in mongodb
       if (id) {
@@ -125,100 +136,101 @@ const activateEmail = async (req, res, next) => {
   }
 };
 
-// // login
-// const login = async (req, res, next) => {
-//   try {
-//     const { email, password } = req.body;
+// login
+const login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
 
-//     // check email
-//     const user = await Users.findOne({ email });
-//     if (!user) {
-//       return res.status(400).json({ status: 400, msg: "Wrong credentials!" });
-//     }
-//     // check password
-//     const isMatch = await bcrypt.compare(password, user.password);
-//     if (!isMatch) {
-//       return res.status(400).json({ status: 400, msg: "Wrong credentials!" });
-//     }
+    // check email
+    const user = await Users.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ status: 400, msg: "Wrong credentials!" });
+    }
 
-//     // check if two factor or not
-//     const { isTwoFactor, phoneNumber, _id } = user;
-//     if (isTwoFactor) {
-//       req.body = { ...req.body, isTwoFactor, phoneNumber, userId: _id };
-//       next();
-//       return;
-//     }
+    // check password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ status: 400, msg: "Wrong credentials!" });
+    }
 
-//     // create token & save in cookies
-//     const access_token = createAccessToken({ id: user._id });
-//     res.cookie("access_token", access_token, cookieOptions);
+    // check if two factor or not
+    const { isTwoFactor, phoneNumber, _id } = user;
+    if (isTwoFactor) {
+      req.body = { ...req.body, isTwoFactor, phoneNumber, userId: _id };
+      next();
+      return;
+    }
 
-//     return res.status(200).json({ status: 200, user, msg: "Login Success!" });
-//   } catch (err) {
-//     next(err);
-//   }
-// };
+    // create token & save in cookies
+    const access_token = createAccessToken({ id: user._id });
+    res.cookie("access_token", access_token, cookieOptions);
 
-// // forgotPassword
-// const forgotPassword = async (req, res, next) => {
-//   try {
-//     const { email } = req.body;
-//     const user = await Users.findOne({ email });
-//     if (!user) {
-//       return res
-//         .status(400)
-//         .json({ status: 400, msg: "This email does not exist!" });
-//     }
+    return res.status(200).json({ status: 200, user, msg: "Login Success!" });
+  } catch (err) {
+    next(err);
+  }
+};
 
-//     // create token & send email
-//     const activation_token = createActivationToken({ id: user._id });
-//     const url = `${CLIENT_URL}/user/reset/${activation_token}`;
+// forgotPassword
+const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await Users.findOne({ email });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ status: 400, msg: "This email does not exist!" });
+    }
 
-//     const text = "Reset your password";
-//     const html = activateEmailHtml(url, text);
+    // create token & send email
+    const activation_token = createActivationToken({ id: user._id });
+    const url = `${CLIENT_URL}/user/reset/${activation_token}`;
 
-//     sendMail(email, html);
+    const text = "Reset your password";
+    const html = activateEmailHtml(url, text);
 
-//     return res.status(200).json({
-//       status: 200,
-//       msg: "Already resend your password, please check your email !",
-//     });
-//   } catch (err) {
-//     next(err);
-//   }
-// };
+    sendEmail(email, html);
 
-// // reset password
-// const resetPassword = async (req, res, next) => {
-//   try {
-//     const { password } = req.body;
-//     const passwordHash = await bcrypt.hash(password, 12);
+    return res.status(200).json({
+      status: 200,
+      msg: "Already resend your password, please check your email !",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
 
-//     const user = await Users.findOneAndUpdate(
-//       { _id: req.user.id },
-//       {
-//         password: passwordHash,
-//       }
-//     );
-//     return res.status(200).json({
-//       status: 200,
-//       user,
-//       msg: "Password is successfully changed!",
-//     });
-//   } catch (err) {
-//     next(err);
-//   }
-// };
+// reset password
+const resetPassword = async (req, res, next) => {
+  try {
+    const { password } = req.body;
+    const passwordHash = await bcrypt.hash(password, 12);
 
-// // logout
-// const logout = async (req, res, next) => {
-//   try {
-//     res.clearCookie("access_token", { path: "/api" });
-//     return res.status(200).json({ status: 200, msg: "Logged out!" });
-//   } catch (err) {
-//     next(err);
-//   }
-// };
+    const user = await Users.findOneAndUpdate(
+      { _id: req.user.id },
+      {
+        password: passwordHash,
+      }
+    );
+    return res.status(200).json({
+      status: 200,
+      user,
+      msg: "Password is successfully changed!",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// logout
+const logout = async (req, res, next) => {
+  try {
+    res.clearCookie("access_token", { path: "/api" });
+    return res.status(200).json({ status: 200, msg: "Logged out!" });
+  } catch (err) {
+    next(err);
+  }
+};
 
 // // 2 factor authentication
 // const storeOtp = async (req, res, next) => {
@@ -382,9 +394,9 @@ module.exports = {
   register,
   activateEmail,
 
-  // login,
-  // forgotPassword,
-  // resetPassword,
+  login,
+  forgotPassword,
+  resetPassword,
 
-  // logout,
+  logout,
 };

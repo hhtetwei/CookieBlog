@@ -52,6 +52,7 @@ const uploadImages = (files, folderName) => {
   }
 
   if (uploadPromises.length) {
+    // return Promise.all(uploadPromises)
     return uploadPromises;
   }
 };

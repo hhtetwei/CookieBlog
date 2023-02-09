@@ -17,6 +17,23 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please enter your password!"],
     },
+    profilePicture: {
+      type: String,
+      default:
+        "https://res.cloudinary.com/dm5vsvaq3/image/upload/v1673412749/PharmacyDelivery/Users/default-profile-picture_nop9jb.webp",
+    },
+    coverPhoto: {
+      type: String,
+      default:
+        "https://res.cloudinary.com/dm5vsvaq3/image/upload/v1673412749/PharmacyDelivery/Users/default-profile-picture_nop9jb.webp",
+    },
+    featuredPhotos: [
+      {
+        type: String,
+        default:
+          "https://res.cloudinary.com/dm5vsvaq3/image/upload/v1673412749/PharmacyDelivery/Users/default-profile-picture_nop9jb.webp",
+      },
+    ],
 
     pictureUrls: [
       {
@@ -33,10 +50,11 @@ const userSchema = new mongoose.Schema(
       },
     ],
 
-    isTwoFactor: {
-      type: Boolean,
-      default: false,
+    DOB: {
+      type: Date,
+      required: [true, "Birthday need to be inserted"],
     },
+
     phoneNumber: {
       type: String,
       default: "",
