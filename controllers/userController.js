@@ -47,12 +47,10 @@ const updatePassword = async (req, res, next) => {
       password: passwordHash,
     });
 
-    return res
-      .status(200)
-      .json({
-        status: 200,
-        msg: "Your password has been successfully changed!",
-      });
+    return res.status(200).json({
+      status: 200,
+      msg: "Your password has been successfully changed!",
+    });
   } catch (err) {
     next(err);
   }
@@ -89,12 +87,10 @@ const updateMe = async (req, res, next) => {
 
     const updateUser = async (userId, payload) => {
       await Users.findByIdAndUpdate(userId, payload);
-      return res
-        .status(200)
-        .json({
-          status: 200,
-          msg: "Your profile has been successfully updated!",
-        });
+      return res.status(200).json({
+        status: 200,
+        msg: "Your profile has been successfully updated!",
+      });
     };
 
     // include photo in request body
@@ -176,6 +172,42 @@ const getAllUsers = async (req, res, next) => {
   }
 };
 
+const addFriends = async (req, res, next) => {
+  // const senderId = await Users.find(req.body.userId)
+  // const receiverId = await Users.find(req.params.id)
+  // if (senderId._id !== receiverId._id) {
+  //     try {
+  //       if (!anotherUser.followers.includes(currentUser._id)) {
+  //         await Users.updateOne(
+  //           { _id: anotherUser._id },
+  //           { $push: { followers: currentUser._id } }
+  //         );
+
+  try {
+    const sender = await Users.findById(req.body.userId);
+    const receiver = await Users.findById(req.params.id);
+
+    if (req.body.userId === req.params.id) {
+      return res.status(400).json({ message: "You can't add yourself!" });
+    }
+
+    if (receiver.friends.includes(sender._id)) {
+      return res.status(400).json({ message: "Cannot add one user twice!" });
+    }
+
+    await Users.findByIdAndUpdate(receiver._id, {
+      $push: { friends: sender._id },
+    });
+
+    return res.status(200).json({
+      status: true,
+      message: "You are friend with this user now",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // ----------------------- can do only SuperAdmin & Admin -------------------------------
 
 const updateUser = async (req, res, next) => {
@@ -207,12 +239,10 @@ const updateUser = async (req, res, next) => {
 
     const updateUser = async (userId, payload) => {
       await Users.findByIdAndUpdate(userId, payload);
-      return res
-        .status(200)
-        .json({
-          status: 200,
-          msg: "This user's profile has been successfully updated!",
-        });
+      return res.status(200).json({
+        status: 200,
+        msg: "This user's profile has been successfully updated!",
+      });
     };
 
     // include photo in request body
@@ -239,26 +269,26 @@ const updateUser = async (req, res, next) => {
   }
 };
 
-// ----------------------- can do only Super Admin -------------------------------
-
-const grantRole = async (req, res, next) => {
+const getAllMutualFriends = async (req, res, next) => {
   try {
-    // validation testing
-    const { roleType } = req.body;
-    if (!roleType) {
-      return res
-        .status(400)
-        .json({ status: false, msg: "Some required information are missing!" });
+    const me = await Users.findById(req.user.id);
+    const other = await Users.findById(req.params.id);
+
+    function compare(arr1, arr2) {
+      const finalArray = [];
+      arr1.forEach((e1) =>
+        arr2.forEach((e2) => {
+          if (e1.toString() === e2.toString()) {
+            finalArray.push(e1);
+          }
+        })
+      );
+      return finalArray;
     }
 
-    await Users.findByIdAndUpdate(req.params.id, { roleType });
+    const mutualFriends = compare(me.friends, other.friends);
 
-    return res
-      .status(200)
-      .json({
-        status: 200,
-        msg: `This user has been successfully granted as ${roleType}`,
-      });
+    return res.status(200).json({ status: 200, mutualFriends: mutualFriends });
   } catch (err) {
     next(err);
   }
@@ -272,5 +302,7 @@ module.exports = {
   getAllUsers,
 
   updateUser,
-  grantRole,
+
+  addFriends,
+  getAllMutualFriends,
 };

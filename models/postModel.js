@@ -28,13 +28,6 @@ const postSchema = new mongoose.Schema(
       },
     ],
 
-    comments: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "users",
-        default: "",
-      },
-    ],
     pictureUrls: [
       {
         type: String,
@@ -53,10 +46,45 @@ const postSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "users",
-        default: "",
+      },
+    ],
+
+    seenUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "users",
+      },
+    ],
+
+    isSaved: {
+      type: Boolean,
+      default: false,
+    },
+    likes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "users",
+      },
+    ],
+    comments: [
+      {
+        commentedUser: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Users",
+        },
+
+        comments: String,
+      },
+    ],
+
+    share: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "users",
       },
     ],
   },
+
   {
     timestamps: true,
   }

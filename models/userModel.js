@@ -55,14 +55,35 @@ const userSchema = new mongoose.Schema(
       required: [true, "Birthday need to be inserted"],
     },
 
-    phoneNumber: {
-      type: String,
-      default: "",
-    },
+    blockedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Users",
+        default: "",
+      },
+    ],
+
+    mutualFriends: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Users",
+      },
+    ],
+
+    friends: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Users",
+        default: "",
+      },
+    ],
   },
   {
     timestamps: true,
   }
 );
 
-module.exports = mongoose.model("Users", userSchema);
+// module.exports = mongoose.model("Users", userSchema);
+const Users = mongoose.model("Users", userSchema);
+
+module.exports = Users;

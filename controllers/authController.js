@@ -55,6 +55,7 @@ const register = async (req, res, next) => {
       name,
       email,
       password: passwordHash,
+      DOB: DateofBirth,
     };
 
     // create email activation token & send email
@@ -87,7 +88,7 @@ const activateEmail = async (req, res, next) => {
       if (err) {
         return res.status(400).json({ status: false, msg: err.message });
       }
-      const { name, email, password } = user;
+      const { name, email, password, DOB } = user;
 
       // // unique validation
       const userEmail = await Users.findOne({ email });
@@ -108,6 +109,7 @@ const activateEmail = async (req, res, next) => {
           name,
           email,
           password,
+          DOB,
           pictureUrls: [
             "https://res.cloudinary.com/dm5vsvaq3/image/upload/v1673412749/PharmacyDelivery/Users/default-profile-picture_nop9jb.webp",
           ],
