@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const moment = require("moment");
 
 const userSchema = new mongoose.Schema(
   {
@@ -17,23 +18,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please enter your password!"],
     },
-    profilePicture: {
-      type: String,
-      default:
-        "https://res.cloudinary.com/dm5vsvaq3/image/upload/v1673412749/PharmacyDelivery/Users/default-profile-picture_nop9jb.webp",
-    },
-    coverPhoto: {
-      type: String,
-      default:
-        "https://res.cloudinary.com/dm5vsvaq3/image/upload/v1673412749/PharmacyDelivery/Users/default-profile-picture_nop9jb.webp",
-    },
-    featuredPhotos: [
-      {
-        type: String,
-        default:
-          "https://res.cloudinary.com/dm5vsvaq3/image/upload/v1673412749/PharmacyDelivery/Users/default-profile-picture_nop9jb.webp",
-      },
-    ],
 
     pictureUrls: [
       {
@@ -52,7 +36,8 @@ const userSchema = new mongoose.Schema(
 
     DOB: {
       type: Date,
-      required: [true, "Birthday need to be inserted"],
+      // required: [true, "Birthday need to be inserted"],
+      default: "",
     },
 
     blockedUsers: [
@@ -70,18 +55,40 @@ const userSchema = new mongoose.Schema(
       },
     ],
 
+    savedPosts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Posts",
+      },
+    ],
+
+    gender: {
+      type: String,
+      enum: ["male", "female", "prefer not to say"],
+    },
+
     friends: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Users",
-        default: "",
       },
     ],
+
+    lastActiveTimestamp: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
   }
 );
+
+userSchema.virtual("isActive").get(function () {
+  console.log("test");
+  if (!this.lastActiveTimestamp) return false;
+
+  return moment().utc().diff(this.lastActiveTimestamp, "seconds") < 30;
+});
 
 // module.exports = mongoose.model("Users", userSchema);
 const Users = mongoose.model("Users", userSchema);

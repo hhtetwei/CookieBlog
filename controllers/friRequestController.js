@@ -42,7 +42,7 @@ const unfri = async (req, res, next) => {
   try {
     const userId = req.user.id; //getting the userid from login cookie
     const sender = await Users.findById(userId);
-    const receiver = await Users.findById(req.body.userId);
+    const receiver = await Users.findById(req.params.id);
 
     await Users.findByIdAndUpdate(receiver._id, {
       $pull: { friends: sender._id },
@@ -63,8 +63,6 @@ const unfri = async (req, res, next) => {
 const confirmFriReq = async (req, res, next) => {
   try {
     const userId = req.user.id; //getting the userid from login cookie
-    // const receiver = await Users.findById(req.body.userId);
-    // const sender = await Users.findById(userId);
 
     const { sender, receiver } = await FriendRequests.findById(req.params.id);
 
@@ -96,8 +94,8 @@ const confirmFriReq = async (req, res, next) => {
 const declineFriReq = async (req, res, next) => {
   try {
     userId = req.user.id;
-    const sender = await Users.findById(req.body.userId);
-    const receiver = await Users.findById(userId);
+    // const sender = await Users.findById(req.body.userId);
+    // const receiver = await Users.findById(userId);
 
     await FriendRequests.findByIdAndUpdate(req.params.id, {
       status: "declined",
@@ -114,7 +112,11 @@ const declineFriReq = async (req, res, next) => {
 
 const getAllFriReq = async (req, res, next) => {
   try {
-    const requests = await FriendRequests.find({ status: { $eq: "pending" } });
+    const userId = req.user.id;
+    const requests = await FriendRequests.find({
+      receiver: userId,
+      status: { $eq: "pending" },
+    });
 
     return res.status(200).json({
       status: true,
@@ -128,7 +130,7 @@ const getAllFriReq = async (req, res, next) => {
 const blockUser = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const receiver = await Users.findById(req.body.userId);
+    const receiver = await Users.findById(req.params.id);
     const sender = await Users.findById(userId);
 
     if (sender.blockedUsers.includes(receiver._id)) {
@@ -139,7 +141,7 @@ const blockUser = async (req, res, next) => {
       });
     }
     await Users.findByIdAndUpdate(sender._id, {
-      $addToSet: { blockedUsers: receiver },
+      $addToSet: { blockedUsers: receiver._id },
     });
     await Users.findByIdAndUpdate(sender._id, {
       $pull: { friends: receiver._id },
@@ -160,7 +162,7 @@ const blockUser = async (req, res, next) => {
 const unblock = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const receiver = await Users.findById(req.body.userId);
+    const receiver = await Users.findById(req.params.id);
     const sender = await Users.findById(userId);
 
     await Users.findByIdAndUpdate(sender._id, {
@@ -210,6 +212,19 @@ const getAllFriList = async (req, res, next) => {
   }
 };
 
+const searchUsers = async (req, res, next) => {
+  try {
+    const result = await Users.find({ name: req.query.name });
+
+    return res.status(200).json({
+      status: true,
+      result,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   sendFriReq,
   confirmFriReq,
@@ -220,4 +235,5 @@ module.exports = {
   getAllFriList,
   unfri,
   unblock,
+  searchUsers,
 };

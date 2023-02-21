@@ -7,10 +7,7 @@ const cors = require("cors");
 const fileUpload = require("express-fileupload");
 const morgan = require("morgan");
 const app = express();
-
-app.use(express.json({ limit: "10mb" })); //for creating data in request body json
-app.use(cors());
-app.use(cookieParser());
+const saveActiveTimestamp = require("./middlewares/saveActiveTimestamp");
 
 app.use(
   fileUpload({
@@ -18,25 +15,30 @@ app.use(
   })
 );
 
+app.use(express.json({ limit: "10mb" }));
+// app.use(express.urlencoded({ extended: true })); //for creating data in request body json
+app.use(cors());
+app.use(cookieParser());
+app.use(saveActiveTimestamp);
+
 //routes
 const authRoute = require("./routes/authRoute");
-// const userRoute = require("./routes/userRoute");
 const postRoute = require("./routes/postRoute");
 const commentRoute = require("./routes/commentRoute");
 const userRoute = require("./routes/userRoute");
 const friRequestRoute = require("./routes/friRequestRoute");
 const newsfeedRoute = require("./routes/newsFeedRoute");
-const { userAuth } = require("./middlewares/userAuth");
 const shareRoute = require("./routes/sharedRoute");
+const { userAuth } = require("./middlewares/userAuth");
 
+// app.use("/api/activeNow", userAuth, activeRoute);
 app.use("/api/auth", authRoute);
-// app.use("/api/user", userRoute);
-app.use("/api/posts", userAuth, postRoute);
-app.use("/api/comments", userAuth, commentRoute);
-app.use("/api/users", userAuth, userRoute);
-app.use("/api/friendRequests", userAuth, friRequestRoute);
-app.use("/api/newsfeed", userAuth, newsfeedRoute);
-app.use("/api/share", userAuth, shareRoute);
+app.use("/api/user", userAuth, userRoute);
+app.use("/api/posts", userAuth, saveActiveTimestamp, postRoute);
+app.use("/api/comments", userAuth, saveActiveTimestamp, commentRoute);
+app.use("/api/friendRequests", userAuth, saveActiveTimestamp, friRequestRoute);
+app.use("/api/newsfeed", userAuth, saveActiveTimestamp, newsfeedRoute);
+app.use("/api/share", userAuth, saveActiveTimestamp, shareRoute);
 
 const port = process.env.PORT || 8000;
 const server = app.listen(port, () => {

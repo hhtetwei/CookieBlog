@@ -28,7 +28,14 @@ const CLIENT_URL = process.env.CLIENT_URL;
 // register
 const register = async (req, res, next) => {
   try {
-    const { name, email, password, DOB } = req.body;
+    const { name, email, password, DOB, gender } = req.body;
+
+    if (!DOB) {
+      return res.status(400).json({
+        status: 400,
+        message: "Date of Birth need to be inserted for authentication",
+      });
+    }
 
     // unique validation
     const userEmail = await Users.findOne({ email });
@@ -56,6 +63,7 @@ const register = async (req, res, next) => {
       email,
       password: passwordHash,
       DOB: DateofBirth,
+      gender,
     };
 
     // create email activation token & send email
@@ -233,164 +241,6 @@ const logout = async (req, res, next) => {
     next(err);
   }
 };
-
-// // 2 factor authentication
-// const storeOtp = async (req, res, next) => {
-//     try {
-//         const { userId, phoneNumber, otp } = req.smsData;
-
-//         const otpHash = await bcrypt.hash(otp, 12);
-
-//         const newOtp = new Otps({
-//             userId,
-//             phoneNumber,
-//             otp: otpHash,
-//             createdAt: Date.now(),
-//             expiresAt: Date.now() + 1000 * 60 * 5,
-//         });
-//         await newOtp.save();
-
-//         return res.json({ status: true, otp, msg: "OTP is sent" });
-//     } catch (err) {
-//         next(err);
-//         return res.status(500).json({ status: false, msg: err.message });
-//     }
-// };
-
-// //
-// const googleLogin = async (req, res, next) => {
-//     try {
-//         const { credential } = req.body;
-//         const verify = await client.verifyIdToken({
-//             idToken: credential,
-//             audience: process.env.MAILING_SERVICE_CLIENT_ID,
-//         });
-
-//         const { email, email_verified, name, picture } = verify.payload;
-
-//         const password = email + process.env.GOOGLE_SECRET;
-
-//         const passwordHash = await bcrypt.hash(password, 12);
-
-//         if (!email_verified) {
-//             return res
-//                 .status(400)
-//                 .json({ status: 400, msg: "Email verfication failed!" });
-//         }
-
-//         //
-//         const user = await Users.findOne({ email });
-
-//         if (user) {
-//             const isMatch = await bcrypt.compare(password, user.password);
-//             if (!isMatch) {
-//                 return res
-//                     .status(400)
-//                     .json({ status: 400, msg: "Wrong credentials!" });
-//             }
-
-//             // create token & save in cookies
-//             const access_token = createAccessToken({ id: user._id });
-//             res.cookie("access_token", access_token, cookieOptions);
-
-//             return res
-//                 .status(200)
-//                 .json({ status: 200, user, msg: "Login Success!" });
-//         }
-//         // create custom id
-//         const id = await createCustomId(Users, "U");
-
-//         if (id) {
-//             const newUser = new Users({
-//                 id,
-//                 name,
-//                 email,
-//                 password: passwordHash,
-//                 pictureUrls: [picture],
-//             });
-//             const savedUser = await newUser.save();
-
-//             // create token & save in cookies
-//             const access_token = createAccessToken({ id: savedUser._id });
-//             res.cookie("access_token", access_token, cookieOptions);
-
-//             return res
-//                 .status(201)
-//                 .json({
-//                     status: 201,
-//                     user: savedUser,
-//                     msg: "Account has been created!",
-//                 });
-//         }
-//     } catch (err) {
-//         next(err);
-//     }
-// };
-
-// const facebookLogin = async (req, res, next) => {
-//     try {
-//         const { accessToken, userID } = req.body;
-
-//         const URL = `https://graph.facebook.com/${userID}?fields=id,name,email,picture&access_token=${accessToken}`;
-
-//         const data = await fetch(URL)
-//             .then((res) => res.json())
-//             .then((res) => {
-//                 return res;
-//             });
-
-//         const { name, email, picture } = data;
-
-//         const password = email + process.env.FACEBOOK_SECRET;
-
-//         const passwordHash = await bcrypt.hash(password, 12);
-
-//         //
-//         const user = await Users.findOne({ email });
-
-//         if (user) {
-//             const isMatch = await bcrypt.compare(password, user.password);
-//             if (!isMatch) {
-//                 return res
-//                     .status(400)
-//                     .json({ status: 400, msg: "Wrong credentials!" });
-//             }
-
-//             // create token & save in cookies
-//             const access_token = createAccessToken({ id: user._id });
-//             res.cookie("access_token", access_token, cookieOptions);
-
-//             return res
-//                 .status(200)
-//                 .json({ status: 200, user, msg: "Login Success!" });
-//         }
-//         // create custom id
-//         const id = await createCustomId(Users, "U");
-
-//         if (id) {
-//             const newUser = new Users({
-//                 id,
-//                 name,
-//                 email,
-//                 password: passwordHash,
-//                 pictureUrls: picture.data.url,
-//             });
-//             const savedUser = await newUser.save();
-
-//             // create token & save in cookies
-//             const access_token = createAccessToken({ id: savedUser._id });
-//             res.cookie("access_token", access_token, cookieOptions);
-
-//             return res.status(201).json({
-//                 status: 201,
-//                 user: savedUser,
-//                 msg: "Account has been created!",
-//             });
-//         }
-//     } catch (err) {
-//         next(err);
-//     }
-// };
 
 module.exports = {
   register,

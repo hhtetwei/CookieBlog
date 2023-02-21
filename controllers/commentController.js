@@ -1,11 +1,10 @@
 const Comments = require("../models/commentModel");
 const Posts = require("./../models/postModel");
-const Users = require("./../models/userModel");
 
 const createComment = async (req, res, next) => {
   try {
-    const { postId, comments } = req.body;
-    const post = await Posts.findById(postId);
+    const { comments } = req.body;
+    const postId = await Posts.findById(req.params.id);
 
     await Posts.findByIdAndUpdate(postId, {
       $push: { comments: { commentedUser: req.user.id, comments } },

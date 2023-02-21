@@ -7,16 +7,21 @@ const {
   getAllPosts,
   deletePost,
   getPostById,
-  savePosts,
+  save,
   clickLike,
+  unsaved,
 } = require("./../controllers/postController");
 
-router.post("/", postValidator, createPosts);
-router.put("/:id", updatePost);
 router.get("/", getAllPosts);
 router.get("/:id", getPostById);
-router.delete("/:id", deletePost);
-router.put("/:id/saveposts", savePosts);
+
+router.post("/", postValidator, createPosts);
+
+router.put("/:id", updatePost);
+router.put("/:id/save", save);
+router.put("/:id/unsave", unsaved);
 router.put("/:id/liked", clickLike);
+
+router.delete("/:id", deletePost);
 
 module.exports = router;

@@ -9,9 +9,9 @@ const {
 
 const { userAuth } = require("./../middlewares/userAuth");
 
-router.post("/", userAuth, createComment);
 router.get("/", getAllComments);
-router.patch("/:id", updateComment);
+router.post("/:id", userAuth, createComment);
+router.put("/:id", updateComment);
 router.delete("/:id", deleteComment);
 
 module.exports = router;

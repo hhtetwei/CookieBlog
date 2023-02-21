@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const sharedSchema = new mongoose.Schema({
   postId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "posts",
+    ref: "Posts",
   },
 
   userId: {

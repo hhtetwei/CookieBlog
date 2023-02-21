@@ -10,6 +10,8 @@ cloudinary.config({
 });
 
 const Posts = require("./../models/postModel");
+const Share = require("./../models/sharedModel");
+const User = require("./../models/userModel");
 // const Users = require('./../models/userModel')
 
 const createPosts = async (req, res, next) => {
@@ -186,26 +188,16 @@ const getAllPosts = async (req, res, next) => {
   try {
     const { page = 1, limit = 10, feeling = "" } = req.query;
 
-    // const matchStage = {
-    //   $or: [{ feeling: { $regex: feeling } }],
-    // };
+    const sharePosts = await Share.find().populate("postId");
+    const posts = await Posts.find()
+      .populate({
+        path: "comments.commentedUser",
+        select: "name",
+      })
+      .sort("-createdAt ");
 
-    // const limitStage = limit * 1;
-    // const skipStage = (page - 1) * limit;
-
-    // const posts = await Posts.aggregate([
-    //   { $match: matchStage },
-    //   { $sort: { id: -1 } },
-    //   { $skip: skipStage },
-    //   { $limit: limitStage },
-    // ]);
-
-    const posts = await Posts.find().populate({
-      path: "comments.commentedUser",
-      select: "name",
-    });
-
-    return res.status(200).json({ status: 200, posts });
+    const allPosts = [...posts, ...sharePosts];
+    return res.status(200).json({ status: 200, allPosts });
   } catch (err) {
     next(err);
   }
@@ -223,27 +215,27 @@ const getPostById = async (req, res, next) => {
   }
 };
 
-const savePosts = async (req, res, next) => {
-  try {
-    const { isSaved } = await Posts.find(req.body);
+// const savePosts = async (req, res, next) => {
+//   try {
+//     const { isSaved } = await Posts.find(req.body);
 
-    if (isSaved) {
-      res.status(200).json({
-        status: true,
-        message: "This post is already saved!",
-      });
-    }
-    await Posts.findByIdAndUpdate(req.params.id, {
-      isSaved: true,
-    });
-    res.status(200).json({
-      status: true,
-      message: "Successfully saved!",
-    });
-  } catch (err) {
-    next(err);
-  }
-};
+//     if (isSaved) {
+//       res.status(200).json({
+//         status: true,
+//         message: "This post is already saved!",
+//       });
+//     }
+//     await Posts.findByIdAndUpdate(req.params.id, {
+//       isSaved: true,
+//     });
+//     res.status(200).json({
+//       status: true,
+//       message: "Successfully saved!",
+//     });
+//   } catch (err) {
+//     next(err);
+//   }
+// };
 
 const clickLike = async (req, res, next) => {
   try {
@@ -276,12 +268,57 @@ const clickLike = async (req, res, next) => {
     next(err);
   }
 };
+
+const save = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+
+    await Posts.findById(req.params.id);
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      {
+        $push: { savedPosts: req.params.id },
+      },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      status: true,
+      savePosts: user.savedPosts,
+      message: "You have successfully saved this post!",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const unsaved = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+
+    await Posts.findById(req.params.id);
+
+    await User.findByIdAndUpdate(userId, {
+      $pull: { savedPosts: req.params.id },
+    });
+
+    return res.status(200).json({
+      status: true,
+      message: "You removed this post from your save posts",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   createPosts,
   updatePost,
   deletePost,
   getAllPosts,
   getPostById,
-  savePosts,
+  save,
   clickLike,
+  unsaved,
 };

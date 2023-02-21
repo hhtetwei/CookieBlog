@@ -14,7 +14,7 @@ const uploadImages = (files, folderName) => {
       {
         secure_url:
           "https://res.cloudinary.com/dm5vsvaq3/image/upload/v1673412749/PharmacyDelivery/Users/default-profile-picture_nop9jb.webp",
-        public_id: "PharmacyDelivery/Users/default-profile-picture_nop9jb.webp",
+        public_id: "CookieBlog/Users/default-profile-picture_nop9jb.webp",
       },
     ];
     return pictures;

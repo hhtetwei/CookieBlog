@@ -14,7 +14,6 @@ const Users = require("../models/userModel");
 // services
 const { uploadImages } = require("../services/uploadImages");
 const { deleteImages } = require("../services/deleteImages");
-const { createCustomId } = require("../services/createCustomId");
 
 const updatePassword = async (req, res, next) => {
   try {
@@ -56,72 +55,13 @@ const updatePassword = async (req, res, next) => {
   }
 };
 
-const updateMe = async (req, res, next) => {
-  try {
-    const { name } = req.body;
-    if (!name) {
-      return res
-        .status(400)
-        .json({ status: 400, msg: "Some required information are missing!" });
-    }
-
-    const userId = req.user.id;
-
-    const user = await Users.findById(userId);
-
-    let deletePromises = [];
-
-    let oldPicPublicIds = user.picPublicIds;
-    let oldPictureUrls = user.pictureUrls;
-
-    // already exist photo in database
-    if (oldPicPublicIds[0] !== "" && oldPictureUrls[0] !== "") {
-      // delete old picture from cloudinary
-      deletePromises = deleteImages(oldPicPublicIds);
-
-      oldPicPublicIds = [""];
-      oldPictureUrls = [""];
-    }
-
-    const uploadPromises = uploadImages(req.files, req.folderName);
-
-    const updateUser = async (userId, payload) => {
-      await Users.findByIdAndUpdate(userId, payload);
-      return res.status(200).json({
-        status: 200,
-        msg: "Your profile has been successfully updated!",
-      });
-    };
-
-    // include photo in request body
-    const pictureUrls = [];
-    const picPublicIds = [];
-
-    Promise.all(deletePromises)
-      .then(() => Promise.all(uploadPromises))
-      .then(async (pictures) => {
-        for (let i = 0; i < pictures.length; i++) {
-          const { secure_url, public_id } = pictures[i];
-          pictureUrls.push(secure_url);
-          picPublicIds.push(public_id);
-        }
-
-        await updateUser(userId, {
-          name,
-          picPublicIds,
-          pictureUrls,
-        });
-      });
-  } catch (err) {
-    next(err);
-  }
-};
-
 const getByUserId = async (req, res, next) => {
   try {
     const user = await Users.findById(req.params.id).select("-password");
 
-    return res.status(200).json({ status: 200, user });
+    return res
+      .status(200)
+      .json({ status: 200, user: user.toObject({ virtuals: true }) });
   } catch (err) {
     next(err);
   }
@@ -208,67 +148,6 @@ const addFriends = async (req, res, next) => {
   }
 };
 
-// ----------------------- can do only SuperAdmin & Admin -------------------------------
-
-const updateUser = async (req, res, next) => {
-  try {
-    const { name } = req.body;
-    if (!name) {
-      return res
-        .status(400)
-        .json({ status: 400, msg: "Some required information are missing!" });
-    }
-
-    const user = await Users.findById(req.params.id);
-
-    let deletePromises = [];
-
-    let oldPicPublicIds = user.picPublicIds;
-    let oldPictureUrls = user.pictureUrls;
-
-    // already exist photo in database
-    if (oldPicPublicIds[0] !== "" && oldPictureUrls[0] !== "") {
-      // delete old picture from cloudinary
-      deletePromises = deleteImages(oldPicPublicIds);
-
-      oldPicPublicIds = [""];
-      oldPictureUrls = [""];
-    }
-
-    const uploadPromises = uploadImages(req.files, req.folderName);
-
-    const updateUser = async (userId, payload) => {
-      await Users.findByIdAndUpdate(userId, payload);
-      return res.status(200).json({
-        status: 200,
-        msg: "This user's profile has been successfully updated!",
-      });
-    };
-
-    // include photo in request body
-    const pictureUrls = [];
-    const picPublicIds = [];
-
-    Promise.all(deletePromises)
-      .then(() => Promise.all(uploadPromises))
-      .then(async (pictures) => {
-        for (let i = 0; i < pictures.length; i++) {
-          const { secure_url, public_id } = pictures[i];
-          pictureUrls.push(secure_url);
-          picPublicIds.push(public_id);
-        }
-
-        await updateUser(req.params.id, {
-          name,
-          picPublicIds,
-          pictureUrls,
-        });
-      });
-  } catch (err) {
-    next(err);
-  }
-};
-
 const getAllMutualFriends = async (req, res, next) => {
   try {
     const me = await Users.findById(req.user.id);
@@ -294,15 +173,76 @@ const getAllMutualFriends = async (req, res, next) => {
   }
 };
 
+const updateProfileInfos = async (req, res, next) => {
+  try {
+    const { name } = req.body;
+    if (!name) {
+      return res
+        .status(400)
+        .json({ status: 400, msg: "Some required information are missing!" });
+    }
+
+    const userId = req.user.id;
+
+    const user = await Users.findById(userId);
+
+    let deletePromises = [];
+
+    let oldPicPublicIds = user.picPublicIds;
+    let oldPictureUrls = user.pictureUrls;
+
+    // already exist photo in database
+    if (oldPicPublicIds[0] !== "" && oldPictureUrls[0] !== "") {
+      // delete old picture from cloudinary
+      deletePromises = deleteImages(oldPicPublicIds);
+
+      oldPicPublicIds = [""];
+      oldPictureUrls = [""];
+    }
+
+    const uploadPromises = uploadImages(req.files, req.folderName);
+
+    const updateUser = async (userId, payload) => {
+      await Users.findByIdAndUpdate(userId, payload);
+      return res.status(200).json({
+        status: 200,
+        msg: "Your profile has been successfully updated!",
+      });
+    };
+
+    // include photo in request body
+    const pictureUrls = [];
+    const picPublicIds = [];
+
+    Promise.all(deletePromises)
+      .then(() => Promise.all(uploadPromises))
+      .then(async (pictures) => {
+        for (let i = 0; i < pictures.length; i++) {
+          const { secure_url, public_id } = pictures[i];
+          pictureUrls.push(secure_url);
+          picPublicIds.push(public_id);
+        }
+
+        await updateUser(userId, {
+          name,
+          picPublicIds,
+          pictureUrls,
+        });
+      });
+  } catch (err) {
+    next(err);
+  }
+};
 module.exports = {
   updatePassword,
-  updateMe,
 
   getByUserId,
   getAllUsers,
 
-  updateUser,
+  // updateUser,
 
   addFriends,
   getAllMutualFriends,
+
+  updateProfileInfos,
 };

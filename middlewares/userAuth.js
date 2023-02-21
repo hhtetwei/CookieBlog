@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 
-const userAuth = async (req, res, next) => {
+const userAuth = async function (req, res, next) {
   try {
     const access_token = req.cookies.access_token;
     // console.log(access_token);

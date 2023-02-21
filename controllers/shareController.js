@@ -1,6 +1,6 @@
 const SharedPosts = require("./../models/sharedModel");
 const Posts = require("./../models/postModel");
-const Users = require("./../models/userModel");
+const ObjectId = require("mongoose").Types.ObjectId;
 
 const createShare = async (req, res, next) => {
   try {
@@ -9,11 +9,8 @@ const createShare = async (req, res, next) => {
     // const userId = await Users.findById(requestedBy);
     const { sharedCaption } = req.body;
     const postId = await Posts.findById(req.params.id);
-
-    const isShared = await SharedPosts.findOne({ postId });
-    if (isShared) {
-      return res.status(400).json("You have aleady shared this post!");
-    }
+    
+    await Posts.findByIdAndUpdate(postId, { $inc: { shareCount: 1 } });
 
     const newSharedPost = new SharedPosts({
       postId,
@@ -36,7 +33,7 @@ const updateShare = async (req, res, next) => {
     // const postId = await SharedPosts.findById(req.params.id);
     const { sharedCaption } = req.body;
 
-    await SharedPosts.findByIdAndUpdate(req.params.id, { sharedCaption }); //mongo find methods only accept objects as their second parameter
+    await SharedPosts.updateOne({ _id: req.params.id }, { sharedCaption }); //mongo find methods only accept objects as their second parameter
 
     return res.status(200).json({
       status: 200,
@@ -72,7 +69,7 @@ const getSharePostById = async (req, res, next) => {
 
 const deleteSharePosts = async (req, res, next) => {
   try {
-    const sharePosts = await SharedPosts.findByIdAndDelete(req.params.id);
+    await SharedPosts.findByIdAndDelete(req.params.id);
     return res.status(200).json({
       status: true,
     });

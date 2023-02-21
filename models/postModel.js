@@ -56,10 +56,6 @@ const postSchema = new mongoose.Schema(
       },
     ],
 
-    isSaved: {
-      type: Boolean,
-      default: false,
-    },
     likes: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -77,12 +73,17 @@ const postSchema = new mongoose.Schema(
       },
     ],
 
-    share: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "users",
-      },
-    ],
+    shareCount: {
+      type: Number,
+      default: 0,
+    },
+
+    // share: [
+    //   {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "users",
+    //   },
+    // ],
   },
 
   {
