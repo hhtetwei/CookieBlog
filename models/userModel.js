@@ -18,7 +18,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please enter your password!"],
     },
-
+    bio: {
+      type: String,
+    },
     pictureUrls: [
       {
         type: String,
@@ -84,7 +86,7 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.virtual("isActive").get(function () {
-  console.log("test");
+  // console.log("test");
   if (!this.lastActiveTimestamp) return false;
 
   return moment().utc().diff(this.lastActiveTimestamp, "seconds") < 30;

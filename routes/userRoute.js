@@ -5,6 +5,7 @@ const {
   getByUserId,
   getAllMutualFriends,
   updateProfileInfos,
+  getMe,
 } = require("./../controllers/userController");
 
 //middlewares
@@ -14,6 +15,7 @@ const {
 } = require("./../validators/auth/profileUpdateInfos");
 
 router.get("/", getAllUsers);
+router.get("/me", getMe);
 router.get("/:id", getByUserId);
 router.get("/mutual/:id", getAllMutualFriends);
 

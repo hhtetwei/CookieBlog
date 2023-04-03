@@ -67,6 +67,18 @@ const getByUserId = async (req, res, next) => {
   }
 };
 
+const getMe = async (req, res, next) => {
+  try {
+    const user = await Users.findById(req.user.id).select("-password");
+
+    return res
+      .status(200)
+      .json({ status: 200, user: user.toObject({ virtuals: true }) });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // get all users
 const getAllUsers = async (req, res, next) => {
   try {
@@ -239,10 +251,9 @@ module.exports = {
   getByUserId,
   getAllUsers,
 
-  // updateUser,
-
   addFriends,
   getAllMutualFriends,
 
   updateProfileInfos,
+  getMe,
 };

@@ -57,19 +57,19 @@ const uploadImages = (files, folderName) => {
   }
 };
 
-const validatePicture = (picture) => {
-  // file size validation
-  if (picture.size > 1024 * 1024) {
-    removeTmp(picture.tempFilePath);
-    return res.status(400).json({ msg: "File size is too large!" });
-  } //1mb
+// const validatePicture = (picture) => {
+//   // file size validation
+//   if (picture.size > 1024 * 1024) {
+//     removeTmp(picture.tempFilePath);
+//     return res.status(400).json({ msg: "File size is too large!" });
+//   } //1mb
 
-  // file type validation
-  if (picture.mimetype !== "image/jpeg" && picture.mimetype !== "image/png") {
-    removeTmp(picture.tempFilePath);
-    return res.status(400).json({ msg: "File format is incorrect" });
-  }
-};
+//   // file type validation
+//   if (picture.mimetype !== "image/jpeg" && picture.mimetype !== "image/png") {
+//     removeTmp(picture.tempFilePath);
+//     return res.status(400).json({ msg: "File format is incorrect" });
+//   }
+// };
 
 // remove temp file
 const removeTmp = (path) => {

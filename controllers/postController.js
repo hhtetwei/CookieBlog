@@ -15,66 +15,25 @@ const User = require("./../models/userModel");
 // const Users = require('./../models/userModel')
 
 const createPosts = async (req, res, next) => {
-  // try {
-  //   let pictureUrls;
-  //   let picPublicIds;
-  //   const { caption, feeling, taggedUsers, author } = req.body;
-
-  //   if (req.files.pictures && req.files.pictures.length) {
-  //     const images = await uploadImages(req.files, req.folderName);
-
-  //     pictureUrls = images.map((image) => image.secure_url);
-  //     picPublicIds = images.map((image) => image.public_id);
-  //   }
-
-  //   const result = await Posts.create({
-  //     author,
-  //     caption,
-  //     feeling,
-  //     taggedUsers,
-  //     pictureUrls,
-  //     picPublicIds,
-  //   });
-
-  //   const newResult = new Posts({
-  //     author,
-  //     caption,
-  //     feeling,
-  //     taggedUsers,
-  //     pictureUrls,
-  //     picPublicIds,
-  //   });
-
-  //   const result = await newResult.save();
-
-  //     return res.status(201).json(result);
-  //   } catch (err) {
-  //     next(err);
-  //   }
-  // };
   try {
-    const { caption, feeling, taggedUsers, author } = req.body;
+    const { caption, author } = req.body;
 
     // store new medicine in mongodb
     const storenewPost = async (pictureUrls, picPublicIds) => {
-      {
-        const newPost = new Posts({
-          caption,
-          feeling,
-          taggedUsers,
-          author,
-          pictureUrls,
-          picPublicIds,
-        });
+      const newPost = new Posts({
+        caption,
+        author,
+        pictureUrls,
+        picPublicIds,
+      });
 
-        const savedPost = await newPost.save();
+      const savedPost = await newPost.save();
 
-        return res.status(201).json({
-          status: 201,
-          postId: savedPost._id,
-          msg: "New Post has been successfully uploaded!",
-        });
-      }
+      return res.status(201).json({
+        status: 201,
+        postId: savedPost._id,
+        msg: "New Post has been successfully uploaded!",
+      });
     };
 
     // handle images
@@ -188,20 +147,24 @@ const getAllPosts = async (req, res, next) => {
   try {
     const { page = 1, limit = 10, feeling = "" } = req.query;
 
-    const sharePosts = await Share.find().populate("postId");
+    // const sharePosts = await Share.find().populate("postId");
     const posts = await Posts.find()
-      .populate({
-        path: "comments.commentedUser",
-        select: "name",
-      })
+      .populate("author")
+      .select("-author.password")
+      // .populate({
+      //   path: "comments.commentedUser",
+      //   select: "name",
+      // })
+
       .sort("-createdAt ");
 
-    const allPosts = [...posts, ...sharePosts];
-    return res.status(200).json({ status: 200, allPosts });
+    // const allPosts = [...posts, ...sharePosts];
+    return res.status(200).json({ status: 200, posts });
   } catch (err) {
     next(err);
   }
 };
+
 const getPostById = async (req, res, next) => {
   try {
     const post = await Posts.findById(req.params.id).populate({
@@ -312,6 +275,25 @@ const unsaved = async (req, res, next) => {
   }
 };
 
+const likePost = async (req, res, next) => {
+  try {
+    // const postId = req.params.id;
+    // const { userId } = req.user;
+    // const { liked } = req.body;
+    // console.log(liked);
+    // const result = await Posts.updateOne(
+    //   { _id: postId },
+    //   { [liked ? "$addToSet" : "$pull"]: { likes: userId } }
+    // );
+    // res.status(200).json({
+    //   status: true,
+    //   message: "You have liked this post",
+    // });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createPosts,
   updatePost,
@@ -321,4 +303,5 @@ module.exports = {
   save,
   clickLike,
   unsaved,
+  likePost,
 };

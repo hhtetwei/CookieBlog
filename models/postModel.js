@@ -5,19 +5,13 @@ const postSchema = new mongoose.Schema(
     author: {
       type: mongoose.Schema.Types.ObjectId,
       required: [true, "Author is required"],
-      ref: "users",
+      ref: "Users",
     },
 
     caption: {
       type: String,
       required: [true, "Please Enter the caption of the post"],
       trim: true,
-    },
-
-    feeling: {
-      type: String,
-      trim: true,
-      default: "",
     },
 
     likes: [
@@ -56,12 +50,6 @@ const postSchema = new mongoose.Schema(
       },
     ],
 
-    likes: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "users",
-      },
-    ],
     comments: [
       {
         commentedUser: {

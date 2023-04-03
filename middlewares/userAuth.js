@@ -3,8 +3,8 @@ const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 
 const userAuth = async function (req, res, next) {
   try {
-    const access_token = req.cookies.access_token;
-    // console.log(access_token);
+    const access_token = req.header("Authorization");
+    console.log(access_token);
 
     if (!access_token) {
       return res.status(400).json({
@@ -19,6 +19,7 @@ const userAuth = async function (req, res, next) {
       }
       req.user = user;
       next();
+      // console.log(user);
     });
   } catch (err) {
     next(err);

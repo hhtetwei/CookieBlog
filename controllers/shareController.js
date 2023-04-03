@@ -1,6 +1,5 @@
 const SharedPosts = require("./../models/sharedModel");
 const Posts = require("./../models/postModel");
-const ObjectId = require("mongoose").Types.ObjectId;
 
 const createShare = async (req, res, next) => {
   try {
@@ -9,7 +8,7 @@ const createShare = async (req, res, next) => {
     // const userId = await Users.findById(requestedBy);
     const { sharedCaption } = req.body;
     const postId = await Posts.findById(req.params.id);
-    
+
     await Posts.findByIdAndUpdate(postId, { $inc: { shareCount: 1 } });
 
     const newSharedPost = new SharedPosts({
@@ -46,7 +45,7 @@ const updateShare = async (req, res, next) => {
 
 const getAllSharedPosts = async (req, res, next) => {
   try {
-    const sharePosts = await SharedPosts.find();
+    const sharePosts = await SharedPosts.find().populate("author");
     return res.status(200).json({
       status: true,
       sharePosts: sharePosts,

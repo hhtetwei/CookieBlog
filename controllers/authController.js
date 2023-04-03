@@ -28,7 +28,7 @@ const CLIENT_URL = process.env.CLIENT_URL;
 // register
 const register = async (req, res, next) => {
   try {
-    const { name, email, password, DOB, gender } = req.body;
+    const { name, email, password, DOB, gender, bio } = req.body;
 
     if (!DOB) {
       return res.status(400).json({
@@ -49,6 +49,7 @@ const register = async (req, res, next) => {
     const DateofBirth = new Date(DOB); //2002
     const countDate = new Date("2008.1.1");
     const isValid = DateofBirth <= countDate;
+
     if (!isValid) {
       return res.status(400).json({
         status: 400,
@@ -58,28 +59,53 @@ const register = async (req, res, next) => {
 
     // create user model
     const passwordHash = await bcrypt.hash(password, 12);
-    const newUser = {
-      name,
-      email,
-      password: passwordHash,
-      DOB: DateofBirth,
-      gender,
-    };
 
-    // create email activation token & send email
-    const activation_token = createActivationToken(newUser);
+    // // create email activation token & send email
+    // const activation_token = createActivationToken(newUser);
 
-    const url = `${CLIENT_URL}/user/activate/${activation_token}`;
-    const text = "Verify your email address";
+    // const url = `${CLIENT_URL}/user/activate/${activation_token}`;
+    // const text = "Verify your email address";
 
-    const html = activateEmailHtml(url, text);
+    // const html = activateEmailHtml(url, text);
 
-    sendEmail(email, html);
+    // // sendEmail(email, html);
 
-    return res.status(200).json({
-      status: 200,
-      msg: "Register Success! Please activate your email to start",
-    });
+    // create custom id
+    const id = await createCustomId(Users, "U");
+
+    // create user model & save in mongodb
+    if (id) {
+      const newUser = new Users({
+        id,
+        name,
+        email,
+        gender,
+        bio,
+        password: passwordHash,
+        DOB: DateofBirth,
+        pictureUrls: [
+          "https://res.cloudinary.com/dm5vsvaq3/image/upload/v1673412749/PharmacyDelivery/Users/default-profile-picture_nop9jb.webp",
+        ],
+        picPublicIds: [
+          "PharmacyDelivery/Users/default-profile-picture_nop9jb.webp",
+        ],
+      });
+
+      const savedUser = await newUser.save();
+
+      // create token & save in cookies
+      const access_token = createAccessToken({
+        id: savedUser._id,
+      });
+
+      res.cookie("access_token", access_token, cookieOptions);
+
+      return res.status(201).json({
+        status: 201,
+        accessToken: access_token,
+        msg: "Account has been created!",
+      });
+    }
   } catch (err) {
     next(err);
   }
@@ -175,7 +201,12 @@ const login = async (req, res, next) => {
     const access_token = createAccessToken({ id: user._id });
     res.cookie("access_token", access_token, cookieOptions);
 
-    return res.status(200).json({ status: 200, user, msg: "Login Success!" });
+    return res.status(200).json({
+      status: 200,
+      user,
+      msg: "Login Success!",
+      accessToken: access_token,
+    });
   } catch (err) {
     next(err);
   }
