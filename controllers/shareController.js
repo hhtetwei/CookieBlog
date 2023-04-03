@@ -45,7 +45,11 @@ const updateShare = async (req, res, next) => {
 
 const getAllSharedPosts = async (req, res, next) => {
   try {
-    const sharePosts = await SharedPosts.find().populate("author");
+    const sharePosts = await SharedPosts.find().populate({
+      path: "userId",
+      select: "name",
+    });
+
     return res.status(200).json({
       status: true,
       sharePosts: sharePosts,

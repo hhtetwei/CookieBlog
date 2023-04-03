@@ -11,9 +11,12 @@ const {
   clickLike,
   unsaved,
   likePost,
+  getMyPosts,
 } = require("./../controllers/postController");
 
 router.get("/", getAllPosts);
+router.get("/me", getMyPosts);
+
 router.get("/:id", getPostById);
 
 router.post("/", postValidator, createPosts);

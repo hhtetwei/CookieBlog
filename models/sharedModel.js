@@ -8,7 +8,7 @@ const sharedSchema = new mongoose.Schema({
 
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "users",
+    ref: "Users",
   },
 
   sharedCaption: {

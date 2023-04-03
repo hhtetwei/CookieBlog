@@ -14,6 +14,8 @@ const Users = require("../models/userModel");
 // services
 const { uploadImages } = require("../services/uploadImages");
 const { deleteImages } = require("../services/deleteImages");
+const { post } = require("../routes/userRoute");
+const Posts = require("../models/postModel");
 
 const updatePassword = async (req, res, next) => {
   try {
@@ -125,16 +127,6 @@ const getAllUsers = async (req, res, next) => {
 };
 
 const addFriends = async (req, res, next) => {
-  // const senderId = await Users.find(req.body.userId)
-  // const receiverId = await Users.find(req.params.id)
-  // if (senderId._id !== receiverId._id) {
-  //     try {
-  //       if (!anotherUser.followers.includes(currentUser._id)) {
-  //         await Users.updateOne(
-  //           { _id: anotherUser._id },
-  //           { $push: { followers: currentUser._id } }
-  //         );
-
   try {
     const sender = await Users.findById(req.body.userId);
     const receiver = await Users.findById(req.params.id);
@@ -185,9 +177,23 @@ const getAllMutualFriends = async (req, res, next) => {
   }
 };
 
+const getMyPosts = async (req, res, next) => {
+  console.log("hello");
+  // const userId = req.user.id;
+  // const postId = req.params.userId;
+  // const posts = await Posts.find({ postedBy: req.user.id });
+  // // const posts = await Posts.findByIdAndUpdate(postId, {
+  // //   $push: { postedBy: userId },
+  // // });
+  // console.log(posts);
+  // return res.status(200).json({
+  //   YourPosts: posts,
+  // });
+};
+
 const updateProfileInfos = async (req, res, next) => {
   try {
-    const { name } = req.body;
+    const { name, bio } = req.body;
     if (!name) {
       return res
         .status(400)
@@ -239,6 +245,7 @@ const updateProfileInfos = async (req, res, next) => {
           name,
           picPublicIds,
           pictureUrls,
+          bio,
         });
       });
   } catch (err) {
@@ -256,4 +263,5 @@ module.exports = {
 
   updateProfileInfos,
   getMe,
+  getMyPosts,
 };

@@ -277,20 +277,29 @@ const unsaved = async (req, res, next) => {
 
 const likePost = async (req, res, next) => {
   try {
-    // const postId = req.params.id;
-    // const { userId } = req.user;
-    // const { liked } = req.body;
-    // console.log(liked);
-    // const result = await Posts.updateOne(
-    //   { _id: postId },
-    //   { [liked ? "$addToSet" : "$pull"]: { likes: userId } }
-    // );
-    // res.status(200).json({
-    //   status: true,
-    //   message: "You have liked this post",
-    // });
+    const postId = req.params.id;
+    const { userId } = req.user;
+    const { liked } = req.body;
+    console.log(liked);
+    const result = await Posts.updateOne(
+      { _id: postId },
+      { [liked ? "$addToSet" : "$pull"]: { likes: userId } }
+    );
+    res.status(200).json({
+      status: true,
+      message: "You have liked this post",
+    });
   } catch (error) {
     next(error);
+  }
+};
+
+const getMyPosts = async (req, res, next) => {
+  try {
+    const posts = await Posts.find({ author: req.user.id }).populate("author");
+    return res.status(200).json({ status: 200, posts });
+  } catch (err) {
+    next(err);
   }
 };
 
@@ -304,4 +313,6 @@ module.exports = {
   clickLike,
   unsaved,
   likePost,
+
+  getMyPosts,
 };

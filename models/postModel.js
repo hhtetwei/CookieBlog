@@ -17,7 +17,7 @@ const postSchema = new mongoose.Schema(
     likes: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "users",
+        ref: "Users",
         default: "",
       },
     ],
@@ -39,7 +39,7 @@ const postSchema = new mongoose.Schema(
     taggedUsers: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "users",
+        ref: "Users",
       },
     ],
 
@@ -64,6 +64,11 @@ const postSchema = new mongoose.Schema(
     shareCount: {
       type: Number,
       default: 0,
+    },
+
+    postedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Users",
     },
 
     // share: [
